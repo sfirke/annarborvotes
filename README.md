@@ -4,6 +4,8 @@
 Ann Arbor Votes is operated by Sam Firke.  See the _disclaimer_ section below for more.
 
 **What?**
+For now, Ann Arbor Votes is simply a Twitter account that tweets reminders to vote at registered voters in Ann Arbor.  It targets voters in wards with contested elections and prioritizes voters who have updated their Twitter statuses more recently.  It is independent and does not consider demographics, political leanings, etc.
+
 As you probably know if you're reading this, not many people vote in America.  This is true in Ann Arbor, and is especially true when it comes to the city's less-publicized city council races.
 
 Political campaigns target likely voters - that is, voters with a track record in voting in low-profile elections.  Mail is expensive and it's not a good return for them to try to involve less-frequent voters.  But it would be good if someone did.
