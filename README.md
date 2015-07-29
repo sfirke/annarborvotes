@@ -14,3 +14,5 @@ This project hopes to increase voter turnout by tweeting at registered voters in
 I think society is better off when more people vote.  It's also a fun project for me (Sam) to try some new programming areas.
 
 _Disclaimer:_ This project is party- and candidate-neutral.  Code is posted publicly, demonstrating that voters are targeted without regard to political party, demographics, candidate preference, or any other factor.  This project does not coordinate with nor does it aim to benefit any campaigns of any sort.  I personally support specific candidates and issues, but am operating Ann Arbor Votes as an entirely independent side project.
+
+Image attribution: the <a href="http://twitter.com/annarborvotes">**@annarborvotes**</a> Twitter avatar comes from <a href="https://commons.wikimedia.org/wiki/File:I_Voted_Sticker.JPG">Dwight Burdette via Wikimedia Commons</a>.
