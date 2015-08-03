@@ -80,12 +80,16 @@ firstEmptyRow <- function(df) {
 }
 
 # Send the tweets in a loop
-batch_size <- 240
-mins_to_sleep <- 6
+batch_size <- 2
+mins_to_sleep <- 4
 
 for(i in 1:batch_size) {
   untweeted_at <- treatment %>% filter(! username %in% tweetsSent$username)
-  tweet_target <-  untweeted_at$username[i]
+  tweet_target <-  untweeted_at$username[1]
+  if(is.na(tweet_target)){
+    print("Tweet targeted NA value for username - breaking")
+    break
+    }
   tweet_used <- tweetAt(tweet_target)
   row_to_write <- firstEmptyRow(tweetsSent)
   tweetsSent[row_to_write, "username"] <- tweet_target
