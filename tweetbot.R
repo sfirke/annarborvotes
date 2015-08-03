@@ -80,8 +80,8 @@ firstEmptyRow <- function(df) {
 }
 
 # Send the tweets in a loop
-batch_size <- 54
-mins_to_sleep <- 11
+batch_size <- 240
+mins_to_sleep <- 6
 
 for(i in 1:batch_size) {
   untweeted_at <- treatment %>% filter(! username %in% tweetsSent$username)
@@ -91,13 +91,13 @@ for(i in 1:batch_size) {
   tweetsSent[row_to_write, "username"] <- tweet_target
   tweetsSent[row_to_write, "message"] <- tweet_used
   tweetsSent[row_to_write, "timestamp"] <- Sys.time()
-  time_to_sleep <- 60*(mins_to_sleep + rnorm(1, 0, mins_to_sleep/10))
+  time_to_sleep <- 60*(mins_to_sleep + rnorm(1, 0, mins_to_sleep/12))
   write.csv(tweetsSent, "tweetsSent.csv", na = "", row.names = FALSE)
   write.csv(untweeted_at, "untweeted_at.csv", na = "", row.names = FALSE)
   print(paste("Tweet number", i, "of", batch_size, "sent to", tweet_target, "at", Sys.time()))
   if(i != batch_size){
     print(paste("Waiting until", (Sys.time() + round(time_to_sleep)), "to send next tweet..."))
-    print(paste("Projected end time: ", (Sys.time() + (batch_size-i)*mins_to_sleep*60 + time_to_sleep)))
+    print(paste("Projected end time: ", (Sys.time() + (batch_size-i-1)*mins_to_sleep*60 + time_to_sleep)))
     Sys.sleep(time_to_sleep)
     }
   else{print("DONE")}
