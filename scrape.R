@@ -1,4 +1,4 @@
-source(profile_scrape_functions.R)
+source("profile_scrape_functions.R")
 
 library(pacman)
 p_load(rvest, dplyr, stringr)
@@ -47,7 +47,7 @@ ward5 <- all_no_dupe_names %>%
 
 
 # Voter records to scrape - my machine runs out of RAM after about 3,000 records so that's my block size, YMMV
-testdat <- ward4[13501:15580, ] # use this to cycle through blocks of voters
+testdat <- ward3[2501:5000, ] # use this to cycle through blocks of voters
 df_length <- nrow(testdat)
 
 # Initialize data frame for results:
@@ -69,7 +69,7 @@ for(i in 1:nrow(testdat)){
 print(paste0("Found ", sum(username_res$isInA2, na.rm = TRUE), " hits; routine ended at ", Sys.time()))
 summary(time_per_iteration)
 print(paste0(sum(username_res$fetching_error), " fetching errors"))
-output_file_name <- make.names(paste0("errored_reruns_", df_length, "_rows_at_", gsub(" ", "_", Sys.time()), ".csv"))
+output_file_name <- make.names(paste0("ward3_", df_length, "_rows_at_", gsub(" ", "_", Sys.time()), ".csv"))
 write.csv(username_res, output_file_name, row.names = FALSE, na = "")
 
 
