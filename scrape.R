@@ -4,6 +4,11 @@ library(pacman)
 p_load(rvest, dplyr, stringr)
 set.seed(1)
 
+# Analytics
+pages_scraped_session <- 0
+trace(read_html, tracer = function() pages_scraped_session <<- pages_scraped_session + 1, print = FALSE)
+# untrace(read_html)
+
 # Read voter data - matches Ann Arbor clerk's data format, YMMV
 coltypes <- c("character", rep("NULL", 4), "character", rep("NULL", 2), "character", "character", "character", "character", "NULL", "character", "NULL", "character", "character", rep("NULL", 31), "character", "character", "character", rep("NULL", 5))
   
