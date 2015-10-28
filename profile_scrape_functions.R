@@ -8,7 +8,7 @@ set.seed(1)
 ## If there's a single hit for first and last but no geographical match, cache that but also keep looking in case a different search does yield a geo match?
 
 
-getUserName <- function(firstname, lastname, noisy = FALSE) {
+getUserName <- function(firstname, lastname, noisy = TRUE) {
   
   firstname <- as.character(firstname) # in case a factor is passed as the argument 
   lastname <- as.character(lastname) # in case a factor is passed as the argument
@@ -29,42 +29,39 @@ getUserName <- function(firstname, lastname, noisy = FALSE) {
   tryCatch(
     { # try
       
-      urlToGet <- capture.output(cat("https://twitter.com/search?q=\"", firstname, "%20", lastname, "\"&src=typd&vertical=default&f=users", sep = ""))
-      res <- html(urlToGet)
-      
-      username <- res %>%
-        html_nodes(".u-linkComplex-target") %>%
-        html_text
-      
+      username_2_names <- search_usernames(lastname, firstname)
+      username <- username_2_names
+  
       if(length(username) > 0) { matchType <- "FirstLastNoGeo"}
       if(noisy){print(paste0("Initial search for ", firstname, " ", lastname, " returned ", length(username), " account hits"))}
       
       # if 18 usernames (max result from first page), try adding geography
       if(length(username) == 18){
-        urlToGet3 <- paste0("https://twitter.com/search?q=\"", firstname, "%20", lastname, "\"&near=me&src=typd&vertical=default&f=users") 
-        res <- html(urlToGet3)
-        
-        username <- res %>%
-          html_nodes(".u-linkComplex-target") %>%
-          html_text
+        username_local <- search_usernames(lastname, firstname, proximity = TRUE)
+        username <- username_local
         
         if(noisy){print(paste0("Geographical search for exact name returned ", length(username), " account hits"))}
         if(length(username) > 0 && length(username) < 18) {matchType <- "FirstLastNearYou"}
         
-        # if that narrowed it to zero, abandon the narrowing and reboot to original search - maybe better programming to cache the result and save queries...
-        if(length(username) == 0){
-          urlToGet <- capture.output(cat("https://twitter.com/search?q=\"", firstname, "%20", lastname, "\"&src=typd&vertical=default&f=users", sep = ""))
-          res <- html(urlToGet)
-          
-          username <- res %>%
-            html_nodes(".u-linkComplex-target") %>%
-            html_text
-          if(noisy){print("Geographical search for exact name returned 0 hits")}
+        # if that narrowed it to zero, abandon the narrowing and reboot to original search
+        if(length(username_local) == 0){
+          username <- username_2_names
+          if(noisy){print("Reverting to initial search results")}
           if(length(username) > 0 && length(username) < 18) {matchType <- "FirstLastNoGeo"}
           
         }
       }
       
+    
+      # Geographical search for last-name only as a last resort. Handles all of the people named "SAMUEL" on the voter rolls and "Sam" on Twitter - but will need to be manually cleaned as it mostly gets the kids of older voters, which without cleaning will yield mis-targeted tweets and noise in the experiment results.
+      if(length(username) == 0 | length(username) == 18){
+        if(length(username) == 18 & noisy){print("Too many results on full search, trying last name only locally")}
+        username_surname_local <- search_usernames(lastname, firstname = NA, proximity = TRUE)
+        username <- username_surname_local
+        if(noisy){print(paste0("Geographical search for last name only returned ", length(username), " account hits"))}
+        if(length(username) > 0 && length(username) < 18) {matchType <- "LastNameOnlyLocal"}
+        
+      }
       
       
       # if multiple hits for full name, query each and look for location = Ann Arbor
@@ -86,12 +83,15 @@ getUserName <- function(firstname, lastname, noisy = FALSE) {
             user_first <- tempUserInfo$user_first
             user_last <- tempUserInfo$user_last
             time_last_tweet <- tempUserInfo$time_last_tweet
+            break
           }
         }  
         success <- foundHit
       }
       
       if(length(username) == 1){ success <- TRUE}
+      
+    
       ifelse(success, {
         #    if(noisy){print(paste0("username = ", username))}
         tempUserInfo <- getUserInfo(username)
@@ -108,6 +108,7 @@ getUserName <- function(firstname, lastname, noisy = FALSE) {
       }, {
         if(noisy){print("no username found")}
         username <- NA
+        matchType <- "No Match"
         
       }
       )
@@ -129,19 +130,26 @@ getUserName <- function(firstname, lastname, noisy = FALSE) {
 
 
 # Fetches search results for a username query to Twitter, returns list of usernames
-searchUsernames <- function(firstname = NA, lastname, proximity = FALSE) {
-  # build URL depending on arguments
-  # fetch page
-  # scrape + return usernames
-  
-  
+# Could have this take a parameter for location instead of hard-coding Ann Arbor - but low priority for me
+search_usernames <- function(lastname, firstname = NA, proximity = FALSE) {
+  name_string <- ifelse(is.na(firstname), lastname, paste0(firstname, "%20", lastname))
+  if(proximity){
+    urlToGet <- capture.output(cat("https://twitter.com/search?f=users&vertical=default&q=\"", name_string, "\"%20near%3A%22Ann%20Arbor%2C%20MI%22%20within%3A15mi&src=typd", sep = ""))
+    }else{
+      urlToGet <- capture.output(cat("https://twitter.com/search?f=users&vertical=default&q=\"", name_string, "\"&src=typd", sep = ""))
+    }
+  res <- read_html(urlToGet)
+  usernames <- res %>%
+    html_nodes(".u-linkComplex-target") %>%
+    html_text
+  usernames
 }
 
 # Takes Twitter username, returns their location string, firstname, lastname
 getUserInfo <- function(username) {
   
   urlToGet <- paste0("https://twitter.com/", username) 
-  res <- html(urlToGet)
+  res <- read_html(urlToGet)
   
   user_location_raw <- res %>%
     html_nodes(".ProfileHeaderCard-locationText") %>%
