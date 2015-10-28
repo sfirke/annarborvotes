@@ -47,26 +47,31 @@ ward5 <- all_no_dupe_names %>%
 
 
 # Voter records to scrape - my machine runs out of RAM after about 3,000 records so that's my block size, YMMV
-testdat <- ward3[2501:5000, ] # use this to cycle through blocks of voters
+testdat <- ward5[7501:10000, ] # use this to cycle through blocks of voters
 df_length <- nrow(testdat)
 
 # Initialize data frame for results:
 username_res <- data.frame(voter_firstname = character(df_length), voter_lastname = character(df_length), twitter_firstname = character(df_length), twitter_lastname = character(df_length), username = character(df_length), isInA2 = logical(df_length), location = character(df_length), time_last_tweet = character(df_length), num_tweets = character(df_length), num_following = character(df_length), num_followers = character(df_length), num_favorites = character(df_length), matchType = character(df_length), fetching_error = logical(df_length), stringsAsFactors = FALSE)
 
+username_res <- as.list(seq_len(df_length))
+
 time_per_iteration <- numeric(df_length)
 
 # Scrape - run this and the subsequent reporting code together as one block
+
 for(i in 1:nrow(testdat)){
   starttime <- proc.time()
   print(paste0("Searching record number ", i, " of ", nrow(testdat)))
   
-  username_res[i, ] <- getUserName(testdat$FIRSTNAME[i], testdat$LASTNAME[i], noisy = FALSE)
+  username_res[[i]] <- getUserName(testdat$FIRSTNAME[i], testdat$LASTNAME[i], noisy = TRUE)
   
-  time_per_iteration[i] <- (proc.time() - starttime)[3]
+   time_per_iteration[i] <- (proc.time() - starttime)[3]
 }
 
+scrape_results <- bind_rows(username_res)
+
 # Reporting results of scrape
-print(paste0("Found ", sum(username_res$isInA2, na.rm = TRUE), " hits; routine ended at ", Sys.time()))
+print(paste0("Found ", sum(scrape_results$isInA2, na.rm = TRUE), " hits; routine ended at ", Sys.time()))
 summary(time_per_iteration)
 print(paste0(sum(username_res$fetching_error), " fetching errors"))
 output_file_name <- make.names(paste0("ward3_", df_length, "_rows_at_", gsub(" ", "_", Sys.time()), ".csv"))
