@@ -8,7 +8,7 @@ set.seed(1)
 ## If there's a single hit for first and last but no geographical match, cache that but also keep looking in case a different search does yield a geo match?
 
 
-getUserName <- function(firstname, lastname, noisy = TRUE) {
+getUserName <- function(voter_id, firstname, lastname, noisy = TRUE) {
   
   firstname <- as.character(firstname) # in case a factor is passed as the argument 
   lastname <- as.character(lastname) # in case a factor is passed as the argument
@@ -19,7 +19,7 @@ getUserName <- function(firstname, lastname, noisy = TRUE) {
   user_loc_string <- as.character(NA)
   user_first <- as.character(NA)
   user_last <- as.character(NA)
-  time_last_tweet <- as.character(NA)
+  time_last_tweet <- as.numeric(NA)
   num_tweets <- as.character(NA)
   num_following <- as.character(NA)
   num_followers <- as.character(NA)
@@ -122,7 +122,7 @@ getUserName <- function(firstname, lastname, noisy = TRUE) {
     }
   ) # end tryCatch
   
-  ret <- data.frame(voter_firstname = firstname, voter_lastname = lastname, twitter_firstname = user_first, twitter_lastname = user_last, username, isInA2, location = user_loc_string, time_last_tweet, num_tweets, num_following, num_followers, num_favorites, matchType, fetching_error = errored, stringsAsFactors = FALSE)
+  ret <- data.frame(voter_id, voter_firstname = firstname, voter_lastname = lastname, twitter_firstname = user_first, twitter_lastname = user_last, username, isInA2, location = user_loc_string, time_last_tweet, num_tweets, num_following, num_followers, num_favorites, matchType, fetching_error = errored, stringsAsFactors = FALSE)
   
   ret
   
@@ -167,10 +167,16 @@ getUserInfo <- function(username) {
   user_first <- user_names[1]
   user_last <- user_names[length(user_names)]
   
-  time_last_tweet <- res %>%
-    html_nodes(".tweet-timestamp") %>%
-    html_text %>%
-    .[1]
+  time_last_tweet <- res %>% # if they have a pinned tweet, this will take first non-pinned
+    html_nodes(".js-pinned+ .expanding-stream-item .js-short-timestamp") %>%
+    html_attr("data-time-ms")
+  
+  if(length(time_last_tweet) == 0){ # otherwise pull the first tweet timestamp
+    time_last_tweet <- res %>%
+      html_nodes(".js-short-timestamp") %>%
+      html_attr("data-time-ms") %>%
+      .[1]
+  }
   
   activity <- res %>%
     html_nodes(".ProfileNav-value") %>%
