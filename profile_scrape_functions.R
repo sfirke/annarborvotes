@@ -19,7 +19,7 @@ getUserName <- function(voter_id, firstname, lastname, noisy = TRUE) {
   user_loc_string <- as.character(NA)
   user_first <- as.character(NA)
   user_last <- as.character(NA)
-  time_last_tweet <- as.numeric(NA)
+  time_last_tweet <- as.character(NA)
   num_tweets <- as.character(NA)
   num_following <- as.character(NA)
   num_followers <- as.character(NA)
